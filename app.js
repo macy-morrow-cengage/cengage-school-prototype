@@ -1,8 +1,8 @@
 const products = [
   { id: 1, name: "American Government Institutions and Policies, 16th Updated Edition AP Edition", seats: "127 Used | 124 Available", courseCount: 28, associationCount: 4, associatedCourseCount: 8 },
-  { id: 2, name: "American Government: Institutions & Policies, AP® Edition", seats: "127 Used | 30 Available", courseCount: 54, associationCount: 4, associatedCourseCount: 8 },
-  { id: 3, name: "American Pageant", seats: "127 Used | 330 Available", courseCount: 42, associationCount: 4, associatedCourseCount: 8 },
-  { id: 4, name: "An Introduction to Comparative Politics, AP® Edition, Student Edition", seats: "127 Used | 330 Available", courseCount: 14, associationCount: 4, associatedCourseCount: 8 },
+  { id: 2, name: "American Government: Institutions & Policies, AP® Edition", seats: "127 Used | 30 Available", courseCount: 54, associationCount: 5, associatedCourseCount: 8 },
+  { id: 3, name: "American Pageant", seats: "127 Used | 330 Available", courseCount: 42, associationCount: 3, associatedCourseCount: 0 },
+  { id: 4, name: "An Introduction to Comparative Politics, AP® Edition, Student Edition", seats: "127 Used | 330 Available", courseCount: 14, associationCount: 2, associatedCourseCount: 0 },
   { id: 5, name: "Century 21 Accounting: General Journal", seats: "127 Used | 330 Available", courseCount: 24, associationCount: 4, associatedCourseCount: 8 },
   { id: 6, name: "Environmental Science", seats: "127 Used | 330 Available", courseCount: 24, associationCount: 4, associatedCourseCount: 8 }
 ];
@@ -19,6 +19,7 @@ const state = {
   selected: new Set(),
   courses: [...baseCourses],
   detached: new Set(),
+  inactiveCourses: new Set(),
   associations: [
     { id: 1, type: "Code", courses: 4, courseNames: baseCourses.slice(0, 4), level: "Course", value: "9954", platform: "Explore" },
     { id: 2, type: "Code", courses: 2, courseNames: baseCourses.slice(4, 6), level: "Course", value: "9954", platform: "01234" },
@@ -50,6 +51,16 @@ const iconAssets = {
 
 function asset(name, alt = "", className = "") {
   return `<img src="./assets/figma/${name}" alt="${alt}" class="${className}">`;
+}
+
+function headerCell(label) {
+  return `<th><span class="th-label">${label}</span><span class="sort" aria-hidden="true"></span></th>`;
+}
+
+function associationSummary(product) {
+  return product.associatedCourseCount
+    ? `${product.associationCount} associations for ${product.associatedCourseCount} courses`
+    : `${product.associationCount} associations`;
 }
 
 function shell(content) {
@@ -89,8 +100,8 @@ function productScreen() {
   const visible = products.filter(product => product.name.toLowerCase().includes(state.productQuery.toLowerCase()));
   return shell(`${tabs()}
     <div class="toolbar"><div class="search-wrap"><input data-action="product-search" aria-label="Search products" placeholder="Search products..." value="${state.productQuery}"></div><button class="btn">Download ${asset("row-chevron.svg", "", "button-chevron")}</button></div>
-    <div class="table-card"><table aria-label="Products"><colgroup><col style="width:25%"><col style="width:12%"><col style="width:20%"><col style="width:11%"><col style="width:11%"><col style="width:20%"></colgroup><thead><tr>${["Product name","Platform","Seats","Status","All courses","Associations & courses"].map(h => `<th>${h}<span class="sort">↕</span></th>`).join("")}</tr></thead><tbody>
-      ${visible.map(product => `<tr><td>${asset("row-chevron.svg", "", "row-chevron-icon")}<span class="product-name">${product.name}</span></td><td>Mindtap</td><td>${product.seats}</td><td><span class="tag">Active</span></td><td><button class="row-trigger" data-action="courses" data-product="${product.id}" ${product.id === 1 ? "data-testid=all-courses-link" : ""}>${product.courseCount}</button></td><td><button class="row-trigger" data-action="associations" data-product="${product.id}" ${product.id === 1 ? "data-testid=associations-link" : ""}>${product.associationCount} & ${product.associatedCourseCount}</button><button class="round-action" data-action="add" data-product="${product.id}" aria-label="Add association for ${product.name}">${asset("add-circle.svg")}</button></td></tr>`).join("") || `<tr><td colspan="6" class="empty">No products match your search.</td></tr>`}
+    <div class="table-card"><table aria-label="Products"><colgroup><col style="width:25%"><col style="width:12%"><col style="width:20%"><col style="width:11%"><col style="width:11%"><col style="width:20%"></colgroup><thead><tr>${["Product name","Platform","Seats","Status","All courses","OneRoster associations"].map(headerCell).join("")}</tr></thead><tbody>
+      ${visible.map(product => `<tr><td>${asset("row-chevron.svg", "", "row-chevron-icon")}<span class="product-name">${product.name}</span></td><td>Mindtap</td><td>${product.seats}</td><td><span class="tag">Active</span></td><td><button class="row-trigger" data-action="courses" data-product="${product.id}" ${product.id === 1 ? "data-testid=all-courses-link" : ""}>${product.courseCount}</button></td><td><button class="row-trigger association-summary" data-action="associations" data-product="${product.id}" ${product.id === 1 ? "data-testid=associations-link" : ""}>${associationSummary(product)}</button><button class="round-action" data-action="add" data-product="${product.id}" aria-label="Add association for ${product.name}">${asset("add-circle.svg")}</button></td></tr>`).join("") || `<tr><td colspan="6" class="empty">No products match your search.</td></tr>`}
     </tbody></table></div>${pagination()}`);
 }
 
@@ -103,9 +114,8 @@ function associationRows() {
     const isExpanded = state.expandedAssociationIds.has(item.id);
     return `
     <tr>
-      <td>${item.type}</td>
+      <td>${item.level}</td><td>${item.type}</td><td>${item.value}</td>
       <td>${item.courses ? `<button class="row-trigger association-toggle" data-action="expand" data-id="${item.id}" aria-expanded="${isExpanded}">${asset("row-chevron.svg", "", `row-chevron-icon ${isExpanded ? "open" : ""}`)}${item.courses}</button>` : "0"}</td>
-      <td>${item.level}</td><td>${item.value}</td><td>${item.platform}</td>
       <td><div class="action-buttons"><button class="icon-action" data-action="edit" data-id="${item.id}" aria-label="Edit association ${item.id}">${asset("edit.svg")}</button><button class="icon-action" data-action="delete-association" data-id="${item.id}" aria-label="Delete association ${item.id}">${asset("delete.svg")}</button></div></td>
     </tr>${isExpanded ? childCourseRow(item) : ""}`;
   }).join("");
@@ -118,7 +128,7 @@ function coursesForAssociation(item) {
 function childCourseRow(item) {
   const courses = coursesForAssociation(item);
   const allSelected = courses.length > 0 && courses.every(name => state.selected.has(name));
-  return `<tr><td colspan="6" class="child-wrap"><div class="child-table"><table aria-label="Courses in association ${item.id}"><colgroup><col style="width:20%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:9%"><col style="width:4%"></colgroup><thead><tr>${["Course","Key","Teacher","School","ISBN (IAC)","Dates","Created","Status"].map(h => `<th>${h}<span class="sort">↕</span></th>`).join("")}<th><input class="check" type="checkbox" data-action="select-all" data-association="${item.id}" aria-label="Select all courses in association ${item.id}" ${allSelected ? "checked" : ""}></th></tr></thead><tbody>${courses.map(courseRow).join("")}</tbody></table></div></td></tr>`;
+  return `<tr><td colspan="5" class="child-wrap"><div class="child-table"><table aria-label="Courses in association ${item.id}"><colgroup><col style="width:20%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:9%"><col style="width:4%"></colgroup><thead><tr>${["Course","Key","Teacher","School","ISBN (IAC)","Dates","Created","Status"].map(headerCell).join("")}<th><input class="check" type="checkbox" data-action="select-all" data-association="${item.id}" aria-label="Select all courses in association ${item.id}" ${allSelected ? "checked" : ""}></th></tr></thead><tbody>${courses.map(courseRow).join("")}</tbody></table></div></td></tr>`;
 }
 
 function courseRow(name) {
@@ -127,25 +137,30 @@ function courseRow(name) {
 }
 
 function associationsScreen() {
-  const selectedBar = state.selected.size ? bulkBar() : "";
-  return shell(`${detailHeading(`${state.selectedProduct.associationCount} associations & ${state.selectedProduct.associatedCourseCount} courses`)}
+  const selectedBar = state.selected.size ? bulkBar("associations") : "";
+  return shell(`${detailHeading(associationSummary(state.selectedProduct))}
     <div class="toolbar"><div class="toolbar-left"><select class="filter-select filter-select-association" aria-label="Association type"><option>Association type</option><option>Code</option></select><select class="filter-select filter-select-level" aria-label="Level"><option>Level</option><option>Course</option></select></div><button class="btn" data-action="add">Add OneRoster association</button></div>
-    <div class="table-card"><table aria-label="Associations"><colgroup><col style="width:19%"><col style="width:18%"><col style="width:18%"><col style="width:16%"><col style="width:16%"><col style="width:12%"></colgroup><thead><tr>${["Association type","Courses","Level","Value","Platform","Actions"].map(h => `<th>${h}<span class="sort">↕</span></th>`).join("")}</tr></thead><tbody>${associationRows()}</tbody></table></div>${pagination()}${selectedBar}`);
+    <div class="table-card"><table aria-label="Associations"><colgroup><col style="width:22%"><col style="width:22%"><col style="width:22%"><col style="width:22%"><col style="width:12%"></colgroup><thead><tr>${["Association level","Type","Value","Courses","Actions"].map(headerCell).join("")}</tr></thead><tbody>${associationRows()}</tbody></table></div>${pagination()}${selectedBar}`);
 }
 
 function coursesScreen() {
   const visible = state.courses.filter(name => name.toLowerCase().includes(state.courseQuery.toLowerCase()));
+  const allSelected = visible.length > 0 && visible.every(name => state.selected.has(name));
+  const selectedBar = state.selected.size ? bulkBar("courses") : "";
   return shell(`${detailHeading(`${state.selectedProduct.courseCount} courses`)}
     <div class="toolbar"><div class="search-wrap"><input data-action="course-search" aria-label="Search courses" placeholder="Search courses..." value="${state.courseQuery}"></div></div>
-    <div class="table-card"><table aria-label="All courses"><colgroup><col style="width:19%"><col style="width:9%"><col style="width:10%"><col style="width:10%"><col style="width:9%"><col style="width:11%"><col style="width:11%"><col style="width:10%"><col style="width:7%"><col style="width:4%"></colgroup><thead><tr>${["Course","Key","Teacher","School","Roster type","ISBN (IAC)","Dates","Created","Status"].map(h => `<th>${h}<span class="sort">↕</span></th>`).join("")}<th><input class="check" type="checkbox" aria-label="Select all listed courses"></th></tr></thead><tbody>${visible.map(name => `<tr><td>${name}</td><td>E-XT9W8M5...</td><td><span class="ellipsis">christopher.obrien@cengage.com</span></td><td>Berkmar High School</td><td>OneRoster</td><td>9781337400572</td><td>2026.08.03 - 2027.01.04</td><td>2026.08.03</td><td><span class="tag">Active</span></td><td><input class="check" type="checkbox" aria-label="Select ${name}"></td></tr>`).join("")}</tbody></table></div>${pagination()}`);
+    <div class="table-card"><table aria-label="All courses"><colgroup><col style="width:19.4%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:8.9%"><col style="width:3.6%"></colgroup><thead><tr>${["Course","Key","Teacher","School","Provisioning method","ISBN (IAC)","Dates","Created","Status"].map(headerCell).join("")}<th><input class="check" type="checkbox" data-action="select-all-courses" aria-label="Select all listed courses" ${allSelected ? "checked" : ""}></th></tr></thead><tbody>${visible.map(name => { const inactive = state.inactiveCourses.has(name); const provisioning = state.courses.indexOf(name) < 6 ? "OneRoster" : "Self registered"; return `<tr><td>${name}</td><td>E-XT9W8M5...</td><td><span class="ellipsis">christopher.obrien@cengage.com</span></td><td>Berkmar High School</td><td>${provisioning}</td><td>9781337400572</td><td>2026.08.03 - 2027.01.04</td><td>2026.08.03</td><td><span class="tag ${inactive ? "tag-inactive" : ""}">${inactive ? "Inactive" : "Active"}</span></td><td><input class="check" type="checkbox" data-action="select-course" data-course="${name}" aria-label="Select ${name}" ${state.selected.has(name) ? "checked" : ""}></td></tr>`; }).join("")}</tbody></table></div>${pagination()}${selectedBar}`);
 }
 
 function pagination() {
   return `<div class="pagination-row"><div class="entries">Entries <select aria-label="Entries per page"><option>10</option><option>25</option></select><strong>Showing 1 to 10 of 100 entries</strong></div><div class="pagination" aria-label="Pagination"><button class="page">←</button>${[1,2,3,4,5,6,7,8,9,10].map(n => `<button class="page ${n===1?"active":""}">${n}</button>`).join("")}<button class="page">→</button></div></div>`;
 }
 
-function bulkBar() {
-  return `<div class="bulkbar"><span>${state.selected.size} courses selected</span><div class="bulk-actions"><button class="deselect" data-action="deselect">Deselect all</button><button class="btn btn-sm" data-action="detach">Detach OneRoster mappings</button><button class="btn btn-sm" data-action="delete-courses">Delete</button></div></div>`;
+function bulkBar(mode) {
+  const primaryAction = mode === "courses" ? "deactivate-courses" : "detach";
+  const primaryLabel = mode === "courses" ? "Deactivate courses" : "Remove from OneRoster management";
+  const courseLabel = state.selected.size === 1 ? "course" : "courses";
+  return `<div class="bulkbar"><span>${state.selected.size} ${courseLabel} selected</span><div class="bulk-actions"><button class="deselect" data-action="deselect">Deselect all</button><button class="btn btn-sm" data-action="${primaryAction}">${primaryLabel}</button><button class="btn btn-sm" data-action="delete-courses">Delete courses</button></div></div>`;
 }
 
 function render() {
@@ -162,7 +177,7 @@ function renderModal() {
   } else {
     const deleting = state.modal.type === "delete-courses";
     const names = [...state.selected];
-    modalRoot.innerHTML = `<div class="modal-backdrop" data-action="backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><h2 id="modal-title">${deleting ? "Delete classes" : "Detach OneRoster mappings"}</h2><button class="modal-close" data-action="close-modal" aria-label="Close dialog">${asset("close.svg")}</button></div><div class="modal-body"><p>Are you sure you want to ${deleting ? "delete" : "detach the OneRoster mappings from"} these ${names.length} courses?</p><ul>${names.map(name => `<li>${name}</li>`).join("")}</ul><div class="notice"><span class="info-icon">i</span><span>${deleting ? "The courses and all of their information will be deleted. This action cannot be undone." : "The link between OneRoster and these courses will be broken and they’ll no longer be able to be updated via OneRoster. This action cannot be undone."}</span></div></div><div class="modal-actions"><button class="btn btn-outline" data-action="close-modal">Cancel</button><button class="btn btn-primary" data-action="confirm-bulk">Yes, ${deleting ? "delete" : "detach"}</button></div></section></div>`;
+    modalRoot.innerHTML = `<div class="modal-backdrop" data-action="backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><h2 id="modal-title">${deleting ? "Delete courses" : "Remove from OneRoster management"}</h2><button class="modal-close" data-action="close-modal" aria-label="Close dialog">${asset("close.svg")}</button></div><div class="modal-body"><p>Are you sure you want to ${deleting ? "delete" : "remove from OneRoster management"} these ${names.length} courses?</p><ul>${names.map(name => `<li>${name}</li>`).join("")}</ul><div class="notice"><span class="info-icon">i</span><span>${deleting ? "The courses and all of their information will be deleted. This action cannot be undone." : "The link between OneRoster and these courses will be broken and they’ll no longer be able to be updated via OneRoster. This action cannot be undone."}</span></div></div><div class="modal-actions"><button class="btn btn-outline" data-action="close-modal">Cancel</button><button class="btn btn-primary" data-action="confirm-bulk">Yes, ${deleting ? "delete" : "remove"}</button></div></section></div>`;
   }
 }
 
@@ -181,7 +196,7 @@ app.addEventListener("click", event => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
   const action = target.dataset.action;
-  if (["product-search", "course-search", "select-all", "select-course"].includes(action)) return;
+  if (["product-search", "course-search", "select-all", "select-all-courses", "select-course"].includes(action)) return;
   if (["courses", "associations", "add"].includes(action)) selectProductFrom(target);
   if (action === "products") { state.screen = "products"; state.expandedAssociationIds.clear(); state.selected.clear(); }
   if (action === "associations") state.screen = "associations";
@@ -200,6 +215,11 @@ app.addEventListener("click", event => {
   if (action === "delete-association") { state.associations = state.associations.filter(item => item.id !== Number(target.dataset.id)); toast("Association deleted"); }
   if (action === "deselect") state.selected.clear();
   if (action === "detach") state.modal = { type: "detach" };
+  if (action === "deactivate-courses") {
+    state.selected.forEach(name => state.inactiveCourses.add(name));
+    toast(`${state.selected.size} courses deactivated`);
+    state.selected.clear();
+  }
   if (action === "delete-courses") state.modal = { type: "delete-courses" };
   render();
 });
@@ -217,6 +237,11 @@ app.addEventListener("change", event => {
     courses.forEach(name => event.target.checked ? state.selected.add(name) : state.selected.delete(name));
     render();
   }
+  if (action === "select-all-courses") {
+    const visible = state.courses.filter(name => name.toLowerCase().includes(state.courseQuery.toLowerCase()));
+    visible.forEach(name => event.target.checked ? state.selected.add(name) : state.selected.delete(name));
+    render();
+  }
   if (action === "select-course") {
     event.target.checked ? state.selected.add(event.target.dataset.course) : state.selected.delete(event.target.dataset.course);
     render();
@@ -231,10 +256,11 @@ modalRoot.addEventListener("click", event => {
   if (action === "confirm-bulk") {
     if (state.modal.type === "delete-courses") {
       state.courses = state.courses.filter(name => !state.selected.has(name));
+      state.selected.forEach(name => state.inactiveCourses.delete(name));
       toast(`${state.selected.size} courses deleted`);
     } else {
       state.selected.forEach(name => state.detached.add(name));
-      toast(`${state.selected.size} OneRoster mappings detached`);
+      toast(`${state.selected.size} courses removed from OneRoster management`);
     }
     state.selected.clear(); state.modal = null; render();
   }

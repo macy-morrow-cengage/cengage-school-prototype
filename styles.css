@@ -6,7 +6,7 @@
   --line: #dedbd8;
   --line-soft: #efedeb;
   --teal: #007f79;
-  --teal-dark: #005650;
+  --teal-dark: #004c4a;
   --teal-soft: #d8f7f4;
   --rose: #ffb6b9;
   --blue: #006fbe;
@@ -49,6 +49,7 @@ button { cursor: pointer; font-weight: 600; }
 h1 { font-size: 28px; line-height: 40px; margin: 0; letter-spacing: .1px; font-weight: 600; }
 .district-subtitle { color: var(--muted); margin-top: 1px; font-size: 14px; letter-spacing: .7px; }
 .tag { display: inline-flex; align-items: center; justify-content: center; background: var(--teal); color: #fff; height: 27px; min-width: 54px; padding: 0 10px; border-radius: 14px; font-size: 12px; }
+.tag-inactive { background: #707070; }
 .status-tag { margin-left: 4px; font-size: 14px; height: 32px; border-radius: 18px; }
 .btn { height: 40px; border-radius: 8px; padding: 0 16px; border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 9px; white-space: nowrap; }
 .btn:hover { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); }
@@ -83,11 +84,13 @@ select { height: 40px; border: 1px solid #777; border-radius: 8px; background: w
 table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 th { background: var(--teal-dark); color: white; height: 48px; padding: 0 12px; text-align: left; font-weight: 600; border-right: 1px solid #d9ecea; }
 th:last-child { border-right: 0; }
+.th-label { display: inline-block; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 td { min-height: 68px; height: 68px; padding: 10px 11px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); vertical-align: middle; line-height: 24px; overflow: hidden; text-overflow: ellipsis; }
 tr:last-child td { border-bottom: 0; }
 .sort { float: right; font-size: 0; width: 20px; height: 20px; background: center / 20px 20px no-repeat url("./assets/figma/sort.svg"); }
 .product-name { color: var(--teal); font-weight: 600; }
 .row-trigger { border: 0; background: none; color: var(--teal); font-weight: 600; font-size: 16px; padding: 0; }
+.association-summary { max-width: calc(100% - 30px); text-align: left; line-height: 24px; vertical-align: middle; }
 .row-chevron-icon { display: inline-block; width: 20px; height: 20px; margin-right: 12px; vertical-align: middle; transition: transform .15s; }
 .row-chevron-icon.open { transform: rotate(180deg); }
 .round-action { width: 24px; height: 24px; border: 0; background: transparent; display: grid; place-items: center; float: right; padding: 0; }
