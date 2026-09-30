@@ -12,6 +12,7 @@ const state = {
   screen: "products", selectedProduct: products[0], expandedProductId: null,
   expandedAssociationIds: new Set(), selected: new Set(), courses: [...baseCourses],
   detached: new Set(), inactiveCourses: new Set(),
+  selectedEntitlements: new Set(), inactiveEntitlements: new Set(),
   associations: [
     { id: 1, type: "Code", courseNames: baseCourses.slice(0, 4), level: "Course", value: "9954" },
     { id: 2, type: "Code", courseNames: baseCourses.slice(4, 6), level: "Course", value: "9954" },
@@ -43,14 +44,19 @@ const searchControl = (action, placeholder, value) => `<div class="search-wrap">
 
 function productScreen() {
   const visible = products.filter(product => product.name.toLowerCase().includes(state.productQuery.toLowerCase()));
-  return shell(`${mainTabs()}${secondaryTabs()}<section class="table-section"><div class="action-row"><label class="checkbox-label"><input class="check" type="checkbox" data-action="hide-inactive" ${state.hideInactiveProducts ? "checked" : ""}>Hide inactive products</label><div class="action-row-buttons"><button class="btn btn-primary" data-action="add-entitlement">Add entitlement</button><button class="btn" disabled>Deactivate</button><button class="btn">Download ${asset("arrow-drop-down.svg", "", "button-chevron")}</button></div></div><div class="control-row">${entriesControl()}${searchControl("product-search", "Search products...", state.productQuery)}</div><div class="table-card product-table"><table aria-label="Products"><colgroup><col style="width:28.57%"><col style="width:12.67%"><col style="width:16.13%"><col style="width:10.75%"><col style="width:12.67%"><col style="width:19.2%"></colgroup><thead><tr>${["Product name", "Platform", "Seats", "Status", "All courses", "OneRoster associations"].map(headerCell).join("")}</tr></thead><tbody>${visible.map(productRow).join("") || `<tr><td colspan="6" class="empty">No products match your search.</td></tr>`}</tbody></table></div>${paginationFooter()}</section>`);
+  return shell(`${mainTabs()}${secondaryTabs()}<section class="table-section"><div class="action-row"><label class="checkbox-label"><input class="check" type="checkbox" data-action="hide-inactive" ${state.hideInactiveProducts ? "checked" : ""}>Hide inactive products</label><div class="action-row-buttons"><button class="btn btn-primary" data-action="add-entitlement">Add entitlement</button><button class="btn btn-deactivate ${state.selectedEntitlements.size ? "active" : ""}" data-action="deactivate-entitlements" ${state.selectedEntitlements.size ? "" : "disabled"}>Deactivate</button><button class="btn">Download ${asset("arrow-drop-down.svg", "", "button-chevron")}</button></div></div><div class="control-row">${entriesControl()}${searchControl("product-search", "Search products...", state.productQuery)}</div><div class="table-card product-table"><table aria-label="Products"><colgroup><col style="width:28.57%"><col style="width:12.67%"><col style="width:16.13%"><col style="width:10.75%"><col style="width:12.67%"><col style="width:19.2%"></colgroup><thead><tr>${["Product name", "Platform", "Seats", "Status", "All courses", "OneRoster associations"].map(headerCell).join("")}</tr></thead><tbody>${visible.map(productRow).join("") || `<tr><td colspan="6" class="empty">No products match your search.</td></tr>`}</tbody></table></div>${paginationFooter()}</section>`);
 }
 function productRow(product) {
   const open = state.expandedProductId === product.id;
   return `<tr><td><button class="disclosure" data-action="expand-product" data-product="${product.id}" aria-expanded="${open}">${asset("row-chevron.svg", "", `row-chevron-icon ${open ? "open" : ""}`)}</button><span class="product-name">${product.name}</span></td><td>Mindtap</td><td><span class="${product.negative ? "negative" : ""}">${product.seats}</span><br>(${product.used})</td><td><span class="tag">Active</span></td><td><button class="row-trigger" data-action="courses" data-product="${product.id}">${product.courseCount}</button></td><td><button class="row-trigger association-summary" data-action="associations" data-product="${product.id}">${associationSummary(product)}</button><button class="round-action" data-action="add" data-product="${product.id}" aria-label="Add association for ${product.name}">${asset("add-circle.svg")}</button></td></tr>${open ? entitlementRows(product) : ""}`;
 }
 function entitlementRows(product) {
-  const rows = [1, 2, 3].map(() => `<tr><td>${asset("edit.svg")}</td><td><span class="teal-icon">▣</span></td><td><span class="product-name">${product.name}</span></td><td>9780170481151</td><td>Pre-PO<br>faculty setup</td><td>0</td><td>5/28/2025</td><td>5/31/2025</td><td>1</td><td><span class="tag">Active</span></td><td><span class="teal-icon">▤</span></td><td><input class="check" type="checkbox" aria-label="Select entitlement"></td></tr>`).join("");
+  const rows = [1, 2, 3].map(index => {
+    const entitlementId = `${product.id}-${index}`;
+    const selected = state.selectedEntitlements.has(entitlementId);
+    const inactive = state.inactiveEntitlements.has(entitlementId);
+    return `<tr><td><button class="icon-action" aria-label="Edit entitlement">${asset("edit.svg")}</button></td><td><button class="icon-action" aria-label="Copy entitlement">${asset("content-copy.svg")}</button></td><td><span class="product-name">${product.name}</span></td><td>9780170481151</td><td>Pre-PO<br>faculty setup</td><td>0</td><td>5/28/2025</td><td>5/31/2025</td><td>1</td><td><span class="tag ${inactive ? "tag-inactive" : ""}">${inactive ? "Inactive" : "Active"}</span></td><td><button class="icon-action" aria-label="View entitlement details">${asset("library-books.svg")}</button></td><td><input class="check" type="checkbox" data-action="select-entitlement" data-entitlement="${entitlementId}" aria-label="Select entitlement" ${selected ? "checked" : ""}></td></tr>`;
+  }).join("");
   return `<tr class="nested-row"><td colspan="6" class="entitlement-wrap"><div class="nested-table"><table aria-label="Entitlements for ${product.name}"><colgroup><col style="width:3%"><col style="width:3%"><col style="width:21%"><col style="width:10%"><col style="width:14%"><col style="width:8%"><col style="width:9%"><col style="width:9%"><col style="width:8%"><col style="width:8%"><col style="width:3%"><col style="width:4%"></colgroup><thead><tr><th></th><th></th>${["Entitlement name", "ISBN", "Type", "Seats", "Activation", "Expiration", "Opty ID", "Status"].map(headerCell).join("")}<th></th><th></th></tr></thead><tbody>${rows}</tbody></table></div></td></tr>`;
 }
 const detailHeading = label => `<div class="detail-title"><button class="back-btn" data-action="products" aria-label="Back to entitlements">${asset("back.svg")}</button><p><strong>${label}:</strong> ${state.selectedProduct.name}</p></div>`;
@@ -147,7 +153,7 @@ app.addEventListener("click", event => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
   const action = target.dataset.action;
-  if (["product-search", "association-search", "course-search", "select-all", "select-all-courses", "select-course", "hide-inactive"].includes(action)) return;
+  if (["product-search", "association-search", "course-search", "select-all", "select-all-courses", "select-course", "select-entitlement", "hide-inactive"].includes(action)) return;
   if (["courses", "associations", "add"].includes(action)) selectProductFrom(target);
   if (action === "products") { state.screen = "products"; state.expandedAssociationIds.clear(); state.selected.clear(); }
   if (action === "associations") { state.screen = "associations"; state.selected.clear(); }
@@ -167,6 +173,11 @@ app.addEventListener("click", event => {
   if (action === "delete-courses") state.modal = { type: "delete-courses" };
   if (action === "refresh-seats") { state.refreshedAt = new Date().toLocaleString("en-US"); toast("Seat counts updated"); }
   if (action === "add-entitlement") toast("Add entitlement selected");
+  if (action === "deactivate-entitlements") {
+    state.selectedEntitlements.forEach(id => state.inactiveEntitlements.add(id));
+    toast(`${state.selectedEntitlements.size} ${state.selectedEntitlements.size === 1 ? "entitlement" : "entitlements"} deactivated`);
+    state.selectedEntitlements.clear();
+  }
   render();
 });
 app.addEventListener("input", event => {
@@ -186,6 +197,7 @@ app.addEventListener("change", event => {
   if (action === "select-all") { const item = state.associations.find(entry => entry.id === Number(event.target.dataset.association)); coursesForAssociation(item).forEach(name => event.target.checked ? state.selected.add(name) : state.selected.delete(name)); render(); }
   if (action === "select-all-courses") { state.courses.filter(name => name.toLowerCase().includes(state.courseQuery.toLowerCase())).forEach(name => event.target.checked ? state.selected.add(name) : state.selected.delete(name)); render(); }
   if (action === "select-course") { event.target.checked ? state.selected.add(event.target.dataset.course) : state.selected.delete(event.target.dataset.course); render(); }
+  if (action === "select-entitlement") { event.target.checked ? state.selectedEntitlements.add(event.target.dataset.entitlement) : state.selectedEntitlements.delete(event.target.dataset.entitlement); render(); }
 });
 modalRoot.addEventListener("click", event => {
   const target = event.target.closest("[data-action]");

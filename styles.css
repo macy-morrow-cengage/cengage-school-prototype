@@ -68,6 +68,8 @@ h1 { margin: 0 0 24px; font-size: 28px; line-height: 40px; font-weight: 600; let
 .btn:hover:not(:disabled) { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); }
 .btn-primary { color: #fff; background: var(--teal); border-color: var(--teal); }
 .btn-primary:hover:not(:disabled) { background: var(--teal-dark); }
+.btn-deactivate.active { color: #fff; background: var(--teal); border-color: var(--teal); }
+.btn-deactivate.active:hover { background: var(--teal-dark); }
 .btn-outline { color: var(--teal); border-color: var(--teal); }
 .btn-sm { height: 30px; padding: 0 12px; font-size: 12px; }
 .button-chevron { width: 20px; height: 20px; }
@@ -120,10 +122,9 @@ tr:last-child td { border-bottom: 0; }
 
 .nested-row > td { height: auto; }
 .entitlement-wrap, .child-wrap { height: auto !important; padding: 12px !important; background: #dcd7d3; border: 1px solid #fff; }
-.child-wrap { background: var(--paper); }
+.child-wrap { background: #dcd7d3; }
 .nested-table, .child-table { border-radius: 8px; overflow: hidden; border: 1px solid #fff; }
 .nested-table td, .child-table td { height: 68px; background: #fff; }
-.nested-table td img { width: 20px; height: 20px; }
 
 .check { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; margin: 0; border: 0; background: transparent; display: inline-grid; place-items: center; position: relative; vertical-align: middle; cursor: pointer; }
 .check::before { content: ""; width: 18px; height: 18px; box-sizing: border-box; border: 2px solid #2d2d2d; border-radius: 2px; background: #fff; }
