@@ -7,19 +7,46 @@ const products = [
   { id: 6, name: "Environmental Science", seats: "50 of 250 Available", used: "150 Used", courseCount: 24, associationCount: 4, associatedCourseCount: 8 }
 ];
 
-const baseCourses = ["Biology", "AP Biology", "AP Biology Period A", "AP Biology Period B", "Advanced Cellular Biology", "Molecular Biology - Block A", "Ecology and Environmental Science - Block A", "Biochemistry and Biotechnology - Block B"];
+const baseCourses = [
+  "Biology", "AP Biology", "AP Biology Period A", "AP Biology Period B",
+  "Advanced Cellular Biology - Block B", "Molecular Biology - Block B",
+  "Genetics and Evolution - Block B", "Ecology and Environmental Science - Block B",
+  "Human Anatomy and Physiology - Block B", "Biochemistry and Biotechnology - Block B"
+];
+const nextPageCourses = [
+  "Chemistry", "Physics", "Mathematics", "History", "Literature",
+  "Computer Science", "Art History", "Economics", "Geography", "Philosophy"
+];
+const courseDetails = {
+  Chemistry: ["Y-AB2D6F4GN...", "michael.smith@cengage.com", "Franklin High School", "9780134500000", "2026.09.01 - 2027.02.28", "2026.09.01"],
+  Physics: ["Z-KL7P9T1VPT...", "linda.jones@cengage.com", "Lincoln High School", "1305620012", "2026.10.01 - 2027.03.31", "2026.10.01"],
+  Mathematics: ["Q-MN4R8D6L...", "robert.brown@cengage.com", "Washington High School", "9781260010013", "2026.08.15 - 2027.01.15", "2026.08.15"],
+  History: ["U-WE5Y2T3SD...", "emily.williams@cengage.com", "Jefferson High School", "9781456630000", "2026.11.01 - 2027.04.30", "2026.11.01"],
+  Literature: ["A-JK3F9L6NP...", "david.miller@cengage.com", "Roosevelt High School", "9781456820001", "2026.12.01 - 2027.05.31", "2026.12.01"],
+  "Computer Science": ["G-PQ8E5R2VQ...", "susan.taylor@cengage.com", "Madison High School", "1305600000", "2026.09.15 - 2027.02.15", "2026.09.15"],
+  "Art History": ["V-RZ6Y1N4OJ...", "james.harris@cengage.com", "Adams High School", "1456821234", "2026.01.10 - 2026.06.10", "2026.01.10"],
+  Economics: ["S-SC0B2F3XT...", "patricia.clark@cengage.com", "Wilson High School", "9780134530000", "2026.10.15 - 2027.03.15", "2026.10.15"],
+  Geography: ["N-SX4G9H7FV...", "charles.martin@cengage.com", "Harrison High School", "1285690000", "2026.02.01 - 2027.07.01", "2026.02.01"],
+  Philosophy: ["M-BW8Z1N8SJ...", "stephen.wright@cengage.com", "Grant High School", "1456822000", "2026.03.01 - 2026.08.01", "2026.03.01"]
+};
+function buildAssociations(product) {
+  const courseGroups = product.associatedCourseCount ? [baseCourses.slice(0, 4), baseCourses.slice(4, 6), baseCourses.slice(6, 8)] : [];
+  return Array.from({ length: product.associationCount }, (_, index) => ({
+    id: product.id * 10 + index + 1,
+    type: "Code",
+    courseNames: courseGroups[index] ? [...courseGroups[index]] : [],
+    level: index === 1 ? "Class" : "Course",
+    value: "9954"
+  }));
+}
+const associationSets = new Map(products.map(product => [product.id, buildAssociations(product)]));
 const state = {
   screen: "products", selectedProduct: products[0], expandedProductId: null,
-  expandedAssociationIds: new Set(), selected: new Set(), courses: [...baseCourses],
+  expandedAssociationIds: new Set(), selected: new Set(), courses: [...baseCourses, ...nextPageCourses],
   detached: new Set(), inactiveCourses: new Set(),
   selectedEntitlements: new Set(), inactiveEntitlements: new Set(),
-  associations: [
-    { id: 1, type: "Code", courseNames: baseCourses.slice(0, 4), level: "Course", value: "9954" },
-    { id: 2, type: "Code", courseNames: baseCourses.slice(4, 6), level: "Course", value: "9954" },
-    { id: 3, type: "Code", courseNames: baseCourses.slice(6, 8), level: "Course", value: "9954" },
-    { id: 4, type: "Code", courseNames: [], level: "Course", value: "9954" }
-  ],
-  productQuery: "", associationQuery: "", courseQuery: "", hideInactiveProducts: false,
+  associations: associationSets.get(1),
+  productQuery: "", associationQuery: "", courseQuery: "", associationCourseQuery: "", hideInactiveProducts: false,
   refreshedAt: "9/28/2026 1:40:34 PM", modal: null
 };
 
@@ -37,14 +64,14 @@ function mainTabs() {
   return `<div class="tabs main-tabs" role="tablist">${["Details", "Schools", "Provisioning", "Entitlements", "Contacts & admins", "Configuration", "Standard sets"].map(label => `<button class="tab ${label === "Entitlements" ? "active" : ""}" role="tab" aria-selected="${label === "Entitlements"}">${label}</button>`).join("")}</div>`;
 }
 function secondaryTabs() {
-  return `<div class="secondary-row"><div class="tabs secondary-tabs"><button class="tab active">Entitlement records</button><button class="tab">Products available</button></div><div class="seat-update"><span>Seat counts last updated: ${state.refreshedAt}</span><button class="refresh-button" data-action="refresh-seats" aria-label="Refresh seat counts">${asset("nav-sync.svg")}</button></div></div>`;
+  return `<div class="secondary-row"><div class="tabs secondary-tabs"><button class="tab active">Entitlement records</button><button class="tab">Products available</button></div><div class="seat-update"><span>Seat counts last updated: ${state.refreshedAt}</span><button class="refresh-button" data-action="refresh-seats" aria-label="Refresh seat counts">${asset("cached.svg")}</button></div></div>`;
 }
 const entriesControl = () => `<label class="entries-control"><span>Entries</span><select aria-label="Entries per page"><option>10</option><option>25</option></select></label>`;
 const searchControl = (action, placeholder, value) => `<div class="search-wrap"><input data-action="${action}" aria-label="${placeholder}" placeholder="${placeholder}" value="${value}"></div>`;
 
 function productScreen() {
   const visible = products.filter(product => product.name.toLowerCase().includes(state.productQuery.toLowerCase()));
-  return shell(`${mainTabs()}${secondaryTabs()}<section class="table-section"><div class="action-row"><label class="checkbox-label"><input class="check" type="checkbox" data-action="hide-inactive" ${state.hideInactiveProducts ? "checked" : ""}>Hide inactive products</label><div class="action-row-buttons"><button class="btn btn-primary" data-action="add-entitlement">Add entitlement</button><button class="btn btn-deactivate ${state.selectedEntitlements.size ? "active" : ""}" data-action="deactivate-entitlements" ${state.selectedEntitlements.size ? "" : "disabled"}>Deactivate</button><button class="btn">Download ${asset("arrow-drop-down.svg", "", "button-chevron")}</button></div></div><div class="control-row">${entriesControl()}${searchControl("product-search", "Search products...", state.productQuery)}</div><div class="table-card product-table"><table aria-label="Products"><colgroup><col style="width:28.57%"><col style="width:12.67%"><col style="width:16.13%"><col style="width:10.75%"><col style="width:12.67%"><col style="width:19.2%"></colgroup><thead><tr>${["Product name", "Platform", "Seats", "Status", "All courses", "OneRoster associations"].map(headerCell).join("")}</tr></thead><tbody>${visible.map(productRow).join("") || `<tr><td colspan="6" class="empty">No products match your search.</td></tr>`}</tbody></table></div>${paginationFooter()}</section>`);
+  return shell(`${mainTabs()}${secondaryTabs()}<section class="table-section"><div class="action-row"><label class="checkbox-label"><input class="check" type="checkbox" data-action="hide-inactive" ${state.hideInactiveProducts ? "checked" : ""}>Hide inactive products</label><div class="action-row-buttons"><button class="btn btn-primary" data-action="add-entitlement">Add entitlement</button><button class="btn btn-deactivate ${state.selectedEntitlements.size ? "active" : ""}" data-action="deactivate-entitlements" ${state.selectedEntitlements.size ? "" : "disabled"}>Deactivate</button><button class="btn">Download ${asset("arrow-drop-down.svg", "", "button-chevron")}</button></div></div><div class="control-row">${entriesControl()}${searchControl("product-search", "Search products...", state.productQuery)}</div><div class="table-card product-table"><table aria-label="Products"><colgroup><col style="width:28.57%"><col style="width:12.67%"><col style="width:16.13%"><col style="width:10.75%"><col style="width:12.67%"><col style="width:19.2%"></colgroup><thead><tr>${["Product name", "Platform", "Seats", "Status", "All courses", "OneRoster associations"].map(headerCell).join("")}</tr></thead><tbody>${visible.map(productRow).join("") || `<tr><td colspan="6" class="empty">No products match your search.</td></tr>`}</tbody></table></div>${paginationFooter(visible.length, visible.length)}</section>`);
 }
 function productRow(product) {
   const open = state.expandedProductId === product.id;
@@ -68,8 +95,7 @@ function updateAssociationCounts() {
 function associationRows() {
   return state.associations.filter(item => `${item.level} ${item.type} ${item.value}`.toLowerCase().includes(state.associationQuery.toLowerCase())).map(item => {
     const courses = coursesForAssociation(item);
-    const open = state.expandedAssociationIds.has(item.id) && courses.length;
-    return `<tr><td>${item.level}</td><td>${item.type}</td><td>${item.value}</td><td>${courses.length ? `<button class="row-trigger association-toggle" data-action="expand" data-id="${item.id}" aria-expanded="${Boolean(open)}">${asset("row-chevron.svg", "", `row-chevron-icon ${open ? "open" : ""}`)}${courses.length}</button>` : "0"}</td><td><div class="action-buttons"><button class="icon-action" data-action="edit" data-id="${item.id}" aria-label="Edit association">${asset("edit.svg")}</button><button class="icon-action" data-action="delete-association" data-id="${item.id}" aria-label="Delete association">${asset("delete.svg")}</button></div></td></tr>${open ? childCourseRow(item, courses) : ""}`;
+    return `<tr><td>${item.level}</td><td>${item.type}</td><td>${item.value}</td><td>${courses.length ? `<button class="row-trigger" data-action="view-association-courses" data-id="${item.id}" aria-label="View ${courses.length} courses">${courses.length}</button>` : "0"}</td><td><div class="action-buttons"><button class="icon-action" data-action="edit" data-id="${item.id}" aria-label="Edit association">${asset("edit.svg")}</button><button class="icon-action" data-action="delete-association" data-id="${item.id}" aria-label="Delete association">${asset("delete.svg")}</button></div></td></tr>`;
   }).join("");
 }
 function childCourseRow(item, courses) {
@@ -78,23 +104,28 @@ function childCourseRow(item, courses) {
 }
 function courseRow(name, includeProvisioning) {
   const inactive = state.inactiveCourses.has(name);
-  return `<tr><td>${name}</td><td><span class="ellipsis">E-XT9W8M5WN...</span></td><td><span class="ellipsis">christopher.obrien@cengage.com</span></td><td>Berkmar High School</td>${includeProvisioning ? `<td>${state.courses.indexOf(name) < 6 ? "OneRoster" : "Self registered"}</td>` : ""}<td>9781337400572</td><td>2026.08.03 - 2027.01.04</td><td>2026.08.03</td><td><span class="tag ${inactive ? "tag-inactive" : ""}">${inactive ? "Inactive" : "Active"}</span></td><td><input class="check" type="checkbox" data-action="select-course" data-course="${name}" aria-label="Select ${name}" ${state.selected.has(name) ? "checked" : ""}></td></tr>`;
+  const detail = courseDetails[name] || ["E-XT9W8M5WN...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"];
+  const provisioning = baseCourses.indexOf(name) < 8 && !state.detached.has(name) ? "OneRoster" : "Self registered";
+  return `<tr><td>${name}</td><td><span class="ellipsis">${detail[0]}</span></td><td><span class="ellipsis">${detail[1]}</span></td><td>${detail[2]}</td>${includeProvisioning ? `<td>${provisioning}</td>` : ""}<td>${detail[3]}</td><td>${detail[4]}</td><td>${detail[5]}</td><td><span class="tag ${inactive ? "tag-inactive" : ""}">${inactive ? "Inactive" : "Active"}</span></td><td><input class="check" type="checkbox" data-action="select-course" data-course="${name}" aria-label="Select ${name}" ${state.selected.has(name) ? "checked" : ""}></td></tr>`;
 }
 function associationsScreen() {
   updateAssociationCounts();
-  return shell(`${detailHeading(`${state.selectedProduct.associationCount} associations for ${state.selectedProduct.associatedCourseCount} courses`)}<section class="table-section"><div class="action-row"><div class="filter-row"><select class="filter-select" aria-label="Association type"><option>Association type</option><option>Code</option></select><select class="filter-select compact" aria-label="Level"><option>Level</option><option>Course</option></select></div><button class="btn" data-action="add">Add OneRoster association</button></div><div class="control-row">${entriesControl()}${searchControl("association-search", "Search associations...", state.associationQuery)}</div><div class="table-card"><table aria-label="Associations"><colgroup><col style="width:22%"><col style="width:22%"><col style="width:22%"><col style="width:22%"><col style="width:12%"></colgroup><thead><tr>${["Association level", "Type", "Value", "Courses", "Actions"].map(headerCell).join("")}</tr></thead><tbody>${associationRows()}</tbody></table></div>${paginationFooter()}${state.selected.size ? bulkBar("associations") : ""}</section>`);
+  return shell(`${detailHeading(`${state.selectedProduct.associationCount} associations for ${state.selectedProduct.associatedCourseCount} courses`)}<section class="table-section"><div class="action-row"><div class="filter-row"><select class="filter-select" aria-label="Association level"><option>Association level</option><option>Course</option><option>Class</option></select><select class="filter-select compact" aria-label="Type"><option>Type</option><option>Code</option></select></div><button class="btn" data-action="add">Add OneRoster association</button></div><div class="control-row">${entriesControl()}${searchControl("association-search", "Search associations...", state.associationQuery)}</div><div class="table-card"><table aria-label="Associations"><colgroup><col style="width:22%"><col style="width:22%"><col style="width:22%"><col style="width:22%"><col style="width:12%"></colgroup><thead><tr>${["Association level", "Type", "Value", "Courses", "Actions"].map(headerCell).join("")}</tr></thead><tbody>${associationRows()}</tbody></table></div>${paginationFooter(state.associations.length, state.associations.length)}${state.selected.size ? bulkBar("associations") : ""}</section>`);
 }
 function coursesScreen() {
-  const visible = state.courses.filter(name => name.toLowerCase().includes(state.courseQuery.toLowerCase()));
+  const matching = state.courses.filter(name => name.toLowerCase().includes(state.courseQuery.toLowerCase()));
+  const visible = matching.slice(0, 10);
   const allSelected = visible.length > 0 && visible.every(name => state.selected.has(name));
-  return shell(`${detailHeading(`${state.selectedProduct.courseCount} courses`)}<section class="table-section"><div class="control-row">${entriesControl()}${searchControl("course-search", "Search courses...", state.courseQuery)}</div><div class="table-card"><table aria-label="All courses"><colgroup><col style="width:19.4%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:8.9%"><col style="width:3.6%"></colgroup><thead><tr>${["Course", "Key", "Teacher", "School", "Provisioning method", "ISBN (IAC)", "Dates", "Created", "Status"].map(headerCell).join("")}<th><input class="check" type="checkbox" data-action="select-all-courses" aria-label="Select all listed courses" ${allSelected ? "checked" : ""}></th></tr></thead><tbody>${visible.map(name => courseRow(name, true)).join("")}</tbody></table></div>${paginationFooter()}${state.selected.size ? bulkBar("courses") : ""}</section>`);
+  return shell(`${detailHeading(`${state.selectedProduct.courseCount} courses`)}<section class="table-section"><div class="control-row">${entriesControl()}${searchControl("course-search", "Search courses...", state.courseQuery)}</div><div class="table-card"><table aria-label="All courses"><colgroup><col style="width:19.4%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:9.7%"><col style="width:8.9%"><col style="width:3.6%"></colgroup><thead><tr>${["Course", "Key", "Teacher", "School", "Provisioning method", "ISBN (IAC)", "Dates", "Created", "Status"].map(headerCell).join("")}<th><input class="check" type="checkbox" data-action="select-all-courses" aria-label="Select all listed courses" ${allSelected ? "checked" : ""}></th></tr></thead><tbody>${visible.map(name => courseRow(name, true)).join("")}</tbody></table></div>${paginationFooter(state.selectedProduct.courseCount, visible.length)}${state.selected.size ? bulkBar("courses") : ""}</section>`);
 }
-function paginationFooter() {
-  return `<div class="pagination-row"><strong>Showing 1 to 10 of 100 entries</strong><div class="pagination" aria-label="Pagination"><button class="page" aria-label="Previous page">←</button>${[1,2,3,4,5,6,7,8,9,10].map(n => `<button class="page ${n === 1 ? "active" : ""}">${n}</button>`).join("")}<button class="page" aria-label="Next page">→</button></div></div>`;
+function paginationFooter(total, shown = Math.min(10, total)) {
+  const pages = Math.ceil(total / 10);
+  const controls = pages > 1 ? `<div class="pagination" aria-label="Pagination"><button class="page" aria-label="Previous page">←</button>${Array.from({ length: pages }, (_, index) => `<button class="page ${index === 0 ? "active" : ""}">${index + 1}</button>`).join("")}<button class="page" aria-label="Next page">→</button></div>` : "";
+  return `<div class="pagination-row"><strong>Showing ${shown ? 1 : 0} to ${shown} of ${total} entries</strong>${controls}</div>`;
 }
 function bulkBar(mode) {
   const word = state.selected.size === 1 ? "course" : "courses";
-  return `<div class="bulkbar"><span>${state.selected.size} ${word} selected</span><div class="bulk-actions"><button class="deselect" data-action="deselect">Deselect all</button>${mode === "courses" ? `<button class="btn btn-sm" data-action="deactivate-courses">Deactivate courses</button>` : `<button class="btn btn-sm" data-action="detach">Remove from OneRoster management</button>`}<button class="btn btn-sm" data-action="delete-courses">Delete courses</button></div></div>`;
+  return `<div class="bulkbar"><span>${state.selected.size} ${word} selected</span><div class="bulk-actions">${mode === "courses" ? `<button class="btn btn-sm" data-action="deactivate-courses">Deactivate courses</button>` : `<button class="btn btn-sm" data-action="detach">Remove from OneRoster management</button>`}<button class="btn btn-sm" data-action="delete-courses">Delete courses</button></div></div>`;
 }
 function render() {
   app.innerHTML = state.screen === "products" ? productScreen() : state.screen === "courses" ? coursesScreen() : associationsScreen();
@@ -105,7 +136,8 @@ function modalFrame(title, body, actions, extraClass = "") {
   return `<div class="modal-backdrop" data-action="backdrop"><section class="modal ${extraClass}" role="dialog" aria-modal="true"><div class="modal-head"><h2>${title}</h2><button class="modal-close" data-action="close-modal" aria-label="Close dialog">${asset("close.svg")}</button></div>${body}${actions}</section></div>`;
 }
 function formModal(editing) {
-  const body = `<form data-action="association-form"><div class="modal-body"><p>${editing ? "Edit your" : "Add an"} association for your <strong>${state.selectedProduct.name}</strong> product.</p><label class="field"><span>Association level</span><select name="level"><option value="">Select level</option><option value="Course" ${editing ? "selected" : ""}>Course</option><option value="School">School</option></select></label><label class="field"><span>Association type</span><select name="type" ${editing ? "" : "disabled"}><option value="">Select type</option><option value="Code" ${editing ? "selected" : ""}>Code</option><option value="Name">Name</option></select></label><label class="field"><span>Association value</span><input name="value" placeholder="Enter value" value="${editing ? state.modal.item.value : ""}"></label></div><div class="modal-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Cancel</button><button type="submit" class="btn btn-primary">${editing ? "Save" : "Submit"}</button></div></form>`;
+  const selectedLevel = editing ? state.modal.item.level : "";
+  const body = `<form data-action="association-form"><div class="modal-body"><p>${editing ? "Edit your" : "Add an"} association for your <strong>${state.selectedProduct.name}</strong> product.</p><label class="field"><span>Association level</span><select name="level"><option value="">Select level</option><option value="Course" ${selectedLevel === "Course" ? "selected" : ""}>Course</option><option value="Class" ${selectedLevel === "Class" ? "selected" : ""}>Class</option><option value="School" ${selectedLevel === "School" ? "selected" : ""}>School</option></select></label><label class="field"><span>Association type</span><select name="type" ${editing ? "" : "disabled"}><option value="">Select type</option><option value="Code" ${editing ? "selected" : ""}>Code</option><option value="Name">Name</option></select></label><label class="field"><span>Association value</span><input name="value" placeholder="Enter value" value="${editing ? state.modal.item.value : ""}"></label></div><div class="modal-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Cancel</button><button type="submit" class="btn btn-primary">${editing ? "Save" : "Submit"}</button></div></form>`;
   return modalFrame(`${editing ? "Edit" : "Add"} OneRoster association`, body, "");
 }
 function confirmationModal(type) {
@@ -126,19 +158,33 @@ function deleteAssociationModal() {
   const actions = `<div class="modal-actions"><button class="btn btn-outline" data-action="close-modal">Cancel</button><button class="btn btn-primary" data-action="confirm-delete-association" ${count && !choice ? "disabled" : ""}>Confirm</button></div>`;
   return modalFrame("Delete association", body, actions, "confirm-modal");
 }
+function associationCoursesModal() {
+  const item = state.modal.item;
+  const courses = coursesForAssociation(item).filter(name => name.toLowerCase().includes(state.associationCourseQuery.toLowerCase()));
+  const allSelected = courses.length > 0 && courses.every(name => state.selected.has(name));
+  const rows = courses.map(name => courseRow(name, false)).join("");
+  const body = `<div class="modal-body courses-modal-body"><div class="control-row">${entriesControl()}${searchControl("association-course-search", "Search courses...", state.associationCourseQuery)}</div><div class="table-card"><table aria-label="Courses in association ${item.id}"><colgroup><col style="width:20%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:7%"><col style="width:3%"></colgroup><thead><tr>${["Course", "Key", "Teacher", "School", "ISBN (IAC)", "Dates", "Created", "Status"].map(headerCell).join("")}<th><input class="check" type="checkbox" data-action="select-all-modal-courses" aria-label="Select all courses in this association" ${allSelected ? "checked" : ""}></th></tr></thead><tbody>${rows}</tbody></table></div>${state.selected.size ? `<div class="modal-bulkbar"><span>${state.selected.size} ${state.selected.size === 1 ? "course" : "courses"} selected</span><div class="bulk-actions"><button class="btn btn-sm" data-action="detach">Remove from OneRoster management</button><button class="btn btn-sm" data-action="delete-courses">Delete courses</button></div></div>` : ""}<div class="modal-entry-count"><strong>Showing ${courses.length ? 1 : 0} to ${courses.length} of ${courses.length} entries</strong></div></div>`;
+  return modalFrame(`${coursesForAssociation(item).length} courses`, body, "", "courses-modal");
+}
 function renderModal() {
   if (!state.modal) { modalRoot.innerHTML = ""; return; }
   if (state.modal.type === "add" || state.modal.type === "edit") modalRoot.innerHTML = formModal(state.modal.type === "edit");
   else if (state.modal.type === "delete-association") modalRoot.innerHTML = deleteAssociationModal();
+  else if (state.modal.type === "association-courses") modalRoot.innerHTML = associationCoursesModal();
   else modalRoot.innerHTML = confirmationModal(state.modal.type);
 }
 function toast(message) {
-  toastRoot.innerHTML = `<div class="toast">${message}</div>`;
-  window.setTimeout(() => { toastRoot.innerHTML = ""; }, 2600);
+  toastRoot.innerHTML = `<div class="toast" role="status"><span class="toast-check" aria-hidden="true">✓</span><span>${message}</span><button class="toast-close" data-action="close-toast" aria-label="Dismiss notification">×</button></div>`;
+  window.setTimeout(() => { toastRoot.innerHTML = ""; }, 5000);
 }
 function selectProductFrom(target) {
   const product = products.find(item => item.id === Number(target.dataset.product));
-  if (product) state.selectedProduct = product;
+  if (product) {
+    state.selectedProduct = product;
+    state.associations = associationSets.get(product.id);
+    state.expandedAssociationIds.clear();
+    state.selected.clear();
+  }
 }
 function deleteSelectedCourses() {
   const deleted = new Set(state.selected);
@@ -146,6 +192,15 @@ function deleteSelectedCourses() {
   state.selectedProduct.courseCount = Math.max(0, state.selectedProduct.courseCount - deleted.size);
   state.associations.forEach(item => { item.courseNames = item.courseNames.filter(name => !deleted.has(name)); if (!item.courseNames.length) state.expandedAssociationIds.delete(item.id); });
   deleted.forEach(name => state.inactiveCourses.delete(name));
+  updateAssociationCounts();
+}
+function detachSelectedCourses() {
+  const detached = new Set(state.selected);
+  detached.forEach(name => state.detached.add(name));
+  state.associations.forEach(item => {
+    item.courseNames = item.courseNames.filter(name => !detached.has(name));
+    if (!item.courseNames.length) state.expandedAssociationIds.delete(item.id);
+  });
   updateAssociationCounts();
 }
 
@@ -167,12 +222,12 @@ app.addEventListener("click", event => {
   if (action === "add") state.modal = { type: "add" };
   if (action === "edit") state.modal = { type: "edit", item: state.associations.find(item => item.id === Number(target.dataset.id)) };
   if (action === "delete-association") state.modal = { type: "delete-association", item: state.associations.find(item => item.id === Number(target.dataset.id)), choice: null };
+  if (action === "view-association-courses") { state.selected.clear(); state.associationCourseQuery = ""; state.modal = { type: "association-courses", item: state.associations.find(item => item.id === Number(target.dataset.id)) }; }
   if (action === "deselect") state.selected.clear();
   if (action === "detach") state.modal = { type: "detach" };
   if (action === "deactivate-courses") state.modal = { type: "deactivate-courses" };
   if (action === "delete-courses") state.modal = { type: "delete-courses" };
-  if (action === "refresh-seats") { state.refreshedAt = new Date().toLocaleString("en-US"); toast("Seat counts updated"); }
-  if (action === "add-entitlement") toast("Add entitlement selected");
+  if (action === "refresh-seats") { state.refreshedAt = new Date().toLocaleString("en-US"); toast("Seat counts updated."); }
   if (action === "deactivate-entitlements") {
     state.selectedEntitlements.forEach(id => state.inactiveEntitlements.add(id));
     toast(`${state.selectedEntitlements.size} ${state.selectedEntitlements.size === 1 ? "entitlement" : "entitlements"} deactivated`);
@@ -195,7 +250,7 @@ app.addEventListener("change", event => {
   const action = event.target.dataset.action;
   if (action === "hide-inactive") { state.hideInactiveProducts = event.target.checked; render(); }
   if (action === "select-all") { const item = state.associations.find(entry => entry.id === Number(event.target.dataset.association)); coursesForAssociation(item).forEach(name => event.target.checked ? state.selected.add(name) : state.selected.delete(name)); render(); }
-  if (action === "select-all-courses") { state.courses.filter(name => name.toLowerCase().includes(state.courseQuery.toLowerCase())).forEach(name => event.target.checked ? state.selected.add(name) : state.selected.delete(name)); render(); }
+  if (action === "select-all-courses") { state.courses.filter(name => name.toLowerCase().includes(state.courseQuery.toLowerCase())).slice(0, 10).forEach(name => event.target.checked ? state.selected.add(name) : state.selected.delete(name)); render(); }
   if (action === "select-course") { event.target.checked ? state.selected.add(event.target.dataset.course) : state.selected.delete(event.target.dataset.course); render(); }
   if (action === "select-entitlement") { event.target.checked ? state.selectedEntitlements.add(event.target.dataset.entitlement) : state.selectedEntitlements.delete(event.target.dataset.entitlement); render(); }
 });
@@ -203,13 +258,14 @@ modalRoot.addEventListener("click", event => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
   const action = target.dataset.action;
-  if (action === "close-modal" || (action === "backdrop" && event.target === target)) { state.modal = null; renderModal(); return; }
+  if (action === "close-modal" || (action === "backdrop" && event.target === target)) { if (state.modal.type === "association-courses") state.selected.clear(); state.modal = null; renderModal(); return; }
+  if (action === "detach" || action === "delete-courses") { state.modal = { type: action === "detach" ? "detach" : "delete-courses" }; renderModal(); return; }
   if (action === "confirm-bulk") {
     const type = state.modal.type, count = state.selected.size;
     if (type === "delete-courses") deleteSelectedCourses();
-    if (type === "detach") state.selected.forEach(name => state.detached.add(name));
+    if (type === "detach") detachSelectedCourses();
     if (type === "deactivate-courses") state.selected.forEach(name => state.inactiveCourses.add(name));
-    toast(`${count} ${count === 1 ? "course" : "courses"} ${type === "delete-courses" ? "deleted" : type === "detach" ? "removed from OneRoster management" : "deactivated"}`);
+    toast(`Successfully ${type === "delete-courses" ? "deleted" : type === "detach" ? "removed" : "deactivated"} ${count} ${count === 1 ? "course" : "courses"}${type === "detach" ? " from OneRoster management" : ""}.`);
     state.selected.clear(); state.modal = null; render();
   }
   if (action === "confirm-delete-association") {
@@ -217,6 +273,7 @@ modalRoot.addEventListener("click", event => {
     const affected = new Set(coursesForAssociation(item));
     if (choice === "delete") { affected.forEach(name => state.selected.add(name)); deleteSelectedCourses(); } else affected.forEach(name => state.detached.add(name));
     state.associations = state.associations.filter(entry => entry.id !== item.id);
+    associationSets.set(state.selectedProduct.id, state.associations);
     state.selectedProduct.associationCount = Math.max(0, state.selectedProduct.associationCount - 1);
     state.expandedAssociationIds.delete(item.id); state.selected.clear(); updateAssociationCounts();
     toast("Association deleted"); state.modal = null; render();
@@ -225,6 +282,15 @@ modalRoot.addEventListener("click", event => {
 modalRoot.addEventListener("change", event => {
   if (event.target.name === "level") modalRoot.querySelector('[name="type"]').disabled = !event.target.value;
   if (event.target.name === "association-delete-choice") { state.modal.choice = event.target.value; renderModal(); }
+  if (event.target.dataset.action === "select-course") { event.target.checked ? state.selected.add(event.target.dataset.course) : state.selected.delete(event.target.dataset.course); renderModal(); }
+  if (event.target.dataset.action === "select-all-modal-courses") { const item = state.modal.item; coursesForAssociation(item).filter(name => name.toLowerCase().includes(state.associationCourseQuery.toLowerCase())).forEach(name => event.target.checked ? state.selected.add(name) : state.selected.delete(name)); renderModal(); }
+});
+modalRoot.addEventListener("input", event => {
+  if (event.target.dataset.action !== "association-course-search") return;
+  state.associationCourseQuery = event.target.value;
+  const position = event.target.selectionStart; renderModal();
+  const replacement = modalRoot.querySelector('[data-action="association-course-search"]');
+  replacement.focus(); replacement.setSelectionRange(position, position);
 });
 modalRoot.addEventListener("submit", event => {
   event.preventDefault();
@@ -239,4 +305,5 @@ modalRoot.addEventListener("submit", event => {
   updateAssociationCounts(); toast(state.modal.type === "edit" ? "Association updated" : "Association added"); state.modal = null; render();
 });
 document.addEventListener("keydown", event => { if (event.key === "Escape" && state.modal) { state.modal = null; renderModal(); } });
+toastRoot.addEventListener("click", event => { if (event.target.closest('[data-action="close-toast"]')) toastRoot.innerHTML = ""; });
 render();

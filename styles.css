@@ -149,6 +149,15 @@ th .check:checked::after { border-color: var(--teal); }
 
 .modal-backdrop { position: fixed; z-index: 100; inset: 0; background: rgba(27,27,27,.58); display: grid; place-items: center; padding: 24px; }
 .modal { width: 600px; border-radius: 8px; overflow: hidden; background: white; box-shadow: var(--shadow); }
+.courses-modal { width: min(1220px, calc(100vw - 48px)); }
+.courses-modal .modal-head { height: 88px; }
+.courses-modal-body { padding: 24px; background: var(--paper); }
+.courses-modal-body .control-row { margin-bottom: 16px; }
+.courses-modal-body .table-card { border-radius: 8px 8px 0 0; }
+.courses-modal-body td { height: 68px; background: white; }
+.modal-bulkbar { min-height: 60px; padding: 12px 32px; background: var(--teal-dark); color: white; display: flex; align-items: center; justify-content: space-between; font-weight: 600; }
+.modal-bulkbar .btn { color: var(--teal-dark); border: 0; background: var(--teal-soft); }
+.modal-entry-count { padding-top: 16px; }
 .modal-head { height: 88px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
 .modal-head h2 { margin: 0; font-size: 20px; font-weight: 600; }
 .modal-close { width: 40px; height: 40px; padding: 8px; border: 0; background: transparent; }
@@ -167,8 +176,15 @@ th .check:checked::after { border-color: var(--teal); }
 .radio-label input { appearance: none; width: 20px; height: 20px; margin: 0; border: 2px solid var(--ink); border-radius: 50%; background: white; }
 .radio-label input:checked { border: 6px solid var(--teal); }
 
-.toast { position: fixed; z-index: 200; top: 86px; right: 24px; padding: 16px 20px; border-left: 5px solid var(--teal); border-radius: 6px; background: white; box-shadow: var(--shadow); font-weight: 600; animation: slide-in .2s ease-out; }
-@keyframes slide-in { from { transform: translateX(25px); opacity: 0; } }
+.toast {
+  position: fixed; z-index: 200; left: 32px; bottom: 24px; width: min(600px, calc(100vw - 64px));
+  min-height: 56px; padding: 12px; border: 1px solid #0a7823; border-radius: 8px;
+  background: #e0ffe7; color: #0a7823; box-shadow: var(--shadow); display: flex;
+  align-items: center; gap: 10px; font-weight: 400; animation: toast-in .2s ease-out;
+}
+.toast-check { width: 20px; height: 20px; border-radius: 50%; background: #0a7823; color: white; display: grid; place-items: center; font-size: 14px; font-weight: 700; }
+.toast-close { width: 32px; height: 32px; margin-left: auto; border: 0; background: transparent; color: #0a7823; font-size: 30px; line-height: 1; font-weight: 400; }
+@keyframes toast-in { from { transform: translateY(16px); opacity: 0; } }
 
 @media (max-width: 1100px) {
   .main { padding-left: 24px; padding-right: 24px; }
