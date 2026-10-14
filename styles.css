@@ -58,6 +58,7 @@ h1 { margin: 0 0 24px; font-size: 28px; line-height: 40px; font-weight: 600; let
 
 .table-section { display: flex; flex-direction: column; gap: 16px; }
 .action-row, .control-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.download-row { display: flex; justify-content: flex-end; }
 .action-row-buttons, .filter-row { display: flex; align-items: center; gap: 16px; }
 .checkbox-label { display: flex; align-items: center; gap: 8px; }
 .btn {
@@ -73,6 +74,7 @@ h1 { margin: 0 0 24px; font-size: 28px; line-height: 40px; font-weight: 600; let
 .btn-outline { color: var(--teal); border-color: var(--teal); }
 .btn-sm { height: 30px; padding: 0 12px; font-size: 12px; }
 .button-chevron { width: 20px; height: 20px; }
+.download-button { min-width: 107px; }
 
 .entries-control { display: flex; align-items: center; gap: 10px; font-size: 14px; }
 select, .filter-select {
@@ -153,7 +155,7 @@ th .check:checked::after { border-color: var(--teal); }
 .courses-modal { width: min(1220px, calc(100vw - 48px)); }
 .courses-modal .modal-head { height: 88px; }
 .courses-modal-body { padding: 24px; background: var(--paper); }
-.courses-modal-body .control-row { margin-bottom: 16px; }
+.courses-modal-body .download-row, .courses-modal-body .control-row { margin-bottom: 16px; }
 .courses-modal-body .table-card { border-radius: 8px 8px 0 0; }
 .courses-modal-body td { height: 68px; background: white; }
 .courses-modal-body th:last-child, .courses-modal-body td:last-child { padding-left: 12px; padding-right: 12px; text-align: center; }
