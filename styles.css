@@ -102,7 +102,7 @@ th:last-child { border-right: 0; }
 td { height: 68px; padding: 10px 11px; vertical-align: middle; line-height: 24px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); overflow: hidden; text-overflow: ellipsis; }
 td:last-child { border-right: 0; }
 tr:last-child td { border-bottom: 0; }
-.product-name, .row-trigger, .teal-icon { color: var(--teal); font-weight: 600; }
+.product-name, .row-trigger, .teal-icon, .table-link { color: var(--teal); font-weight: 600; }
 .negative { color: #c33a32; }
 .disclosure, .row-trigger, .round-action, .icon-action { border: 0; background: transparent; padding: 0; }
 .disclosure { width: 24px; height: 24px; margin-right: 10px; vertical-align: middle; }
@@ -116,7 +116,8 @@ tr:last-child td { border-bottom: 0; }
 .action-buttons { display: flex; align-items: center; gap: 16px; }
 .icon-action { width: 24px; height: 24px; }
 .tag { min-width: 54px; height: 24px; padding: 0 9px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: var(--teal); color: white; font-size: 12px; }
-.tag-inactive { background: #707070; }
+.tag-inactive { background: white; border: 1px solid #78726d; color: var(--ink); }
+.tag-sunset { background: #454545; color: white; }
 .ellipsis { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .empty { text-align: center; padding: 48px; color: var(--muted); }
 
