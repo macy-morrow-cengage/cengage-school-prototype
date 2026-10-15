@@ -43,7 +43,7 @@ const associationSets = new Map(products.map(product => [product.id, buildAssoci
 const state = {
   screen: "products", selectedProduct: products[0], expandedProductId: null,
   expandedAssociationIds: new Set(), selected: new Set(), courses: [...baseCourses, ...nextPageCourses],
-  detached: new Set(), inactiveCourses: new Set(), sunsetCourses: new Set(["AP Biology Period A"]),
+  detached: new Set(), inactiveCourses: new Set(), sunsetCourses: new Set(),
   selectedEntitlements: new Set(), inactiveEntitlements: new Set(),
   associations: associationSets.get(1),
   productQuery: "", associationQuery: "", courseQuery: "", associationCourseQuery: "", hideInactiveProducts: false,
@@ -72,7 +72,7 @@ const downloadControl = () => `<button class="btn download-button" type="button"
 
 function productScreen() {
   const visible = products.filter(product => product.name.toLowerCase().includes(state.productQuery.toLowerCase()));
-  return shell(`${mainTabs()}${secondaryTabs()}<section class="table-section"><div class="action-row"><label class="checkbox-label"><input class="check" type="checkbox" data-action="hide-inactive" ${state.hideInactiveProducts ? "checked" : ""}>Hide inactive products</label><div class="action-row-buttons"><button class="btn btn-primary" data-action="add-entitlement">Add entitlement</button><button class="btn btn-deactivate ${state.selectedEntitlements.size ? "active" : ""}" data-action="deactivate-entitlements" ${state.selectedEntitlements.size ? "" : "disabled"}>Deactivate</button>${downloadControl()}</div></div><div class="control-row">${entriesControl()}${searchControl("product-search", "Search products...", state.productQuery)}</div><div class="table-card product-table"><table aria-label="Products"><colgroup><col style="width:28.57%"><col style="width:12.67%"><col style="width:16.13%"><col style="width:10.75%"><col style="width:12.67%"><col style="width:19.2%"></colgroup><thead><tr>${["Product name", "Platform", "Seats", "Status", "All courses", "OneRoster associations"].map(headerCell).join("")}</tr></thead><tbody>${visible.map(productRow).join("") || `<tr><td colspan="6" class="empty">No products match your search.</td></tr>`}</tbody></table></div>${paginationFooter(visible.length, visible.length)}</section>`);
+  return shell(`${mainTabs()}${secondaryTabs()}<section class="table-section"><div class="action-row"><label class="checkbox-label"><input class="check" type="checkbox" data-action="hide-inactive" ${state.hideInactiveProducts ? "checked" : ""}>Hide inactive products</label><div class="action-row-buttons"><button class="btn btn-primary" data-action="add-entitlement">Add entitlement</button><button class="btn btn-deactivate ${state.selectedEntitlements.size ? "active" : ""}" data-action="deactivate-entitlements" ${state.selectedEntitlements.size ? "" : "disabled"}>Deactivate</button>${downloadControl()}</div></div><div class="control-row">${entriesControl()}${searchControl("product-search", "Search products...", state.productQuery)}</div><div class="table-card product-table"><table aria-label="Products"><colgroup><col style="width:28.57%"><col style="width:12.67%"><col style="width:16.13%"><col style="width:10.75%"><col style="width:12.67%"><col style="width:19.2%"></colgroup><thead><tr>${["Product name", "Platform", "Seats", "Status", "Active courses", "OneRoster associations"].map(headerCell).join("")}</tr></thead><tbody>${visible.map(productRow).join("") || `<tr><td colspan="6" class="empty">No products match your search.</td></tr>`}</tbody></table></div>${paginationFooter(visible.length, visible.length)}</section>`);
 }
 function productRow(product) {
   const open = state.expandedProductId === product.id;
@@ -104,7 +104,7 @@ function childCourseRow(item, courses) {
   return `<tr class="nested-row"><td colspan="5" class="child-wrap"><div class="child-table"><table aria-label="Courses in association ${item.id}"><colgroup><col style="width:19%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:9%"><col style="width:4%"></colgroup><thead><tr>${["Course", "Key", "Teacher", "School", "ISBN (IAC)", "Dates", "Created", "Status"].map(headerCell).join("")}<th><input class="check" type="checkbox" data-action="select-all" data-association="${item.id}" aria-label="Select all courses" ${allSelected ? "checked" : ""}></th></tr></thead><tbody>${courses.map(name => courseRow(name, false)).join("")}</tbody></table></div></td></tr>`;
 }
 function courseRow(name, includeProvisioning) {
-  const inactive = state.inactiveCourses.has(name) || (includeProvisioning && name === "AP Biology");
+  const inactive = state.inactiveCourses.has(name);
   const sunset = includeProvisioning && state.sunsetCourses.has(name) && !inactive;
   const status = inactive ? "Inactive" : sunset ? "Sunset" : "Active";
   const detail = courseDetails[name] || ["E-XT9W8M5WN...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"];
