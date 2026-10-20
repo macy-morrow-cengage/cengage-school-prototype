@@ -18,6 +18,16 @@ const nextPageCourses = [
   "Computer Science", "Art History", "Economics", "Geography", "Philosophy"
 ];
 const courseDetails = {
+  Biology: ["E-BIO1A7K9Q...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "AP Biology": ["E-APB2C8M4R...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "AP Biology Period A": ["E-APA3D6N5T...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "AP Biology Period B": ["E-APB4F2P8V...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "Advanced Cellular Biology - Block B": ["E-ACB5G9Q3W...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "Molecular Biology - Block B": ["E-MBB6H4R7X...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "Genetics and Evolution - Block B": ["E-GEV7J2S8Y...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "Ecology and Environmental Science - Block B": ["E-EES8K5T3Z...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "Human Anatomy and Physiology - Block B": ["E-HAP9L6U4A...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
+  "Biochemistry and Biotechnology - Block B": ["E-BBT0M7V5B...", "christopher.obrien@cengage.com", "Berkmar High School", "9781337400572", "2026.08.03 - 2027.01.04", "2026.08.03"],
   Chemistry: ["Y-AB2D6F4GN...", "michael.smith@cengage.com", "Franklin High School", "9780134500000", "2026.09.01 - 2027.02.28", "2026.09.01"],
   Physics: ["Z-KL7P9T1VPT...", "linda.jones@cengage.com", "Lincoln High School", "1305620012", "2026.10.01 - 2027.03.31", "2026.10.01"],
   Mathematics: ["Q-MN4R8D6L...", "robert.brown@cengage.com", "Washington High School", "9781260010013", "2026.08.15 - 2027.01.15", "2026.08.15"],
@@ -29,6 +39,14 @@ const courseDetails = {
   Geography: ["N-SX4G9H7FV...", "charles.martin@cengage.com", "Harrison High School", "1285690000", "2026.02.01 - 2027.07.01", "2026.02.01"],
   Philosophy: ["M-BW8Z1N8SJ...", "stephen.wright@cengage.com", "Grant High School", "1456822000", "2026.03.01 - 2026.08.01", "2026.03.01"]
 };
+const associationValuesByProduct = {
+  1: ["9954", "2741", "6830", "4176"],
+  2: ["8293", "1508", "7624", "3905", "9462"],
+  3: ["2187", "5740", "8316"],
+  4: ["4659", "7032"],
+  5: ["1894", "6275", "3501", "9186"],
+  6: ["5428", "2763", "8047", "1369"]
+};
 function buildAssociations(product) {
   const courseGroups = product.associatedCourseCount ? [baseCourses.slice(0, 4), baseCourses.slice(4, 6), baseCourses.slice(6, 8)] : [];
   return Array.from({ length: product.associationCount }, (_, index) => ({
@@ -36,7 +54,7 @@ function buildAssociations(product) {
     type: "Code",
     courseNames: courseGroups[index] ? [...courseGroups[index]] : [],
     level: index === 1 ? "Class" : "Course",
-    value: "9954"
+    value: associationValuesByProduct[product.id][index]
   }));
 }
 const associationSets = new Map(products.map(product => [product.id, buildAssociations(product)]));
